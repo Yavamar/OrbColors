@@ -6,6 +6,7 @@ using BepInEx.Logging;
 using CodeTalker.Networking;
 using CodeTalker.Packets;
 using HarmonyLib;
+using Mirror;
 using Nessie.ATLYSS.EasySettings;
 using UnityEngine;
 
@@ -89,14 +90,16 @@ namespace OrbColors
 
         internal static void SendOrbColorPacket()
         {
-            if (_myOrbColor.Count == 4)
+            if (NetworkClient.active && _myOrbColor.Count == 4)
             {
-                CodeTalkerNetwork.SendNetworkPacket(new OrbColorPacket(
+                OrbColorPacket packet = new(
                     _customOrbColorEnabled.Value,
                     _myOrbColor["Red"].Value,
                     _myOrbColor["Green"].Value,
                     _myOrbColor["Blue"].Value,
-                    _myOrbColor["Alpha"].Value));
+                    _myOrbColor["Alpha"].Value);
+
+                CodeTalkerNetwork.SendNetworkPacket(packet);
             }
         }
 
@@ -104,7 +107,7 @@ namespace OrbColors
         {
             if (packet is OrbColorPacket orbColor)
             {
-                Logger.LogInfo($"Packet\n  From: {orbColor.PacketSourceGUID} ({header.SenderID})\n  PayLoad: {orbColor.Enabled}, {orbColor.Red}, {orbColor.Green}, {orbColor.Blue}, {orbColor.Alpha}");
+                Logger.LogInfo($"Packet Recieved | Plugin: {orbColor.PacketSourceGUID} | Steam ID: {header.SenderID} | PayLoad: {orbColor.Enabled}, {orbColor.Red}, {orbColor.Green}, {orbColor.Blue}, {orbColor.Alpha}");
 
                 Color color = new(orbColor.Red, orbColor.Green, orbColor.Blue, orbColor.Alpha);
                 string key = header.SenderID.ToString();
