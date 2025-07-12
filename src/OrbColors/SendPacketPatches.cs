@@ -13,12 +13,6 @@ namespace OrbColors
             if(NetworkClient.active)
             {
                 CodeTalkerNetwork.SendNetworkPacket(new PlayerJoinPacket());
-
-                if (Plugin._customOrbColorEnabled.Value)
-                {
-                    //Plugin.Logger.LogMessage("Sending packet due to player joining.");
-                    Plugin.SendOrbColorPacket();
-                }
             }
         }
     }

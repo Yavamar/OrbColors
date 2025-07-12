@@ -47,7 +47,7 @@ namespace OrbColors
             Settings.OnApplySettings.AddListener(() => { Config.Save(); });
 
             CodeTalkerNetwork.RegisterListener<OrbColorPacket>(ReceiveOrbColorPacket);
-            CodeTalkerNetwork.RegisterListener<OrbColorPacket>(ReceivePlayerJoinPacket);
+            CodeTalkerNetwork.RegisterListener<PlayerJoinPacket>(ReceivePlayerJoinPacket);
         }
 
         private void InitConfig()
@@ -126,8 +126,10 @@ namespace OrbColors
 
         internal static void ReceivePlayerJoinPacket(PacketHeader header, PacketBase packet)
         {
+            //Logger.LogInfo("Player with OrbColors joined.");
             if (packet is PlayerJoinPacket && _customOrbColorEnabled.Value)
             {
+                //Logger.LogInfo("My custom orb color is enabled, so I should send it to them.");
                 SendOrbColorPacket();
             }
         }
