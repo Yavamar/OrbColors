@@ -47,14 +47,14 @@ namespace OrbColors
             Settings.OnApplySettings.AddListener(() => { Config.Save(); });
 
             CodeTalkerNetwork.RegisterListener<OrbColorPacket>(ReceiveOrbColorPacket);
-            Logger.LogMessage("Created a packet listener");
+            CodeTalkerNetwork.RegisterListener<OrbColorPacket>(ReceivePlayerJoinPacket);
         }
 
         private void InitConfig()
         {
             ConfigDefinition EnabledDef = new("Example Category", "OrbColorsEnabled");
             ConfigDescription EnabledDesc = new("Use Custom Orb Color?");
-            _customOrbColorEnabled = Config.Bind(EnabledDef, true, EnabledDesc);
+            _customOrbColorEnabled = Config.Bind(EnabledDef, false, EnabledDesc);
 
             Color BlockEmissionColor = new();
 
@@ -117,16 +117,19 @@ namespace OrbColors
                     key = "localhost"; // Because the Player object sets the _steamID to "localhost" for the host, for some reason.
                 }
                 
-                if(_playerOrbColors.ContainsKey(key))
+                if(!_playerOrbColors.TryAdd(key, (orbColor.Enabled, color)))
                 {
                     _playerOrbColors[key] = (orbColor.Enabled, color);
-                }
-                else
-                {
-                    _playerOrbColors.Add(key, (orbColor.Enabled, color));
                 }
             }
         }
 
+        internal static void ReceivePlayerJoinPacket(PacketHeader header, PacketBase packet)
+        {
+            if (packet is PlayerJoinPacket && _customOrbColorEnabled.Value)
+            {
+                SendOrbColorPacket();
+            }
+        }
     }
 }

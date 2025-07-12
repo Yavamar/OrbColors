@@ -18,3 +18,8 @@ public class OrbColorPacket(bool enabled, float red, float green, float blue, fl
     [JsonProperty]
     public float Alpha { get; set; } = alpha;
 }
+
+public class PlayerJoinPacket() : PacketBase
+{
+    public override string PacketSourceGUID => LCMPluginInfo.PLUGIN_GUID;
+}

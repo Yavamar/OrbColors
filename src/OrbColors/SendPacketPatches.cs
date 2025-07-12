@@ -1,18 +1,25 @@
 ﻿using BepInEx.Configuration;
+using CodeTalker.Networking;
 using HarmonyLib;
 using Mirror;
 
 namespace OrbColors
 {
-    [HarmonyPatch(typeof(Player), "Awake")]
+    [HarmonyPatch(typeof(Player), "OnStartAuthority")]
     internal class PlayerPatch
     {
-        public static bool Prefix(Player __instance)
+        public static void Postfix()
         {
-            Plugin.Logger.LogMessage("Sending packet due to player joining.");
-            Plugin.SendOrbColorPacket();
+            if(NetworkClient.active)
+            {
+                CodeTalkerNetwork.SendNetworkPacket(new PlayerJoinPacket());
 
-            return true;
+                if (Plugin._customOrbColorEnabled.Value)
+                {
+                    //Plugin.Logger.LogMessage("Sending packet due to player joining.");
+                    Plugin.SendOrbColorPacket();
+                }
+            }
         }
     }
 
@@ -24,7 +31,7 @@ namespace OrbColors
             
             if (NetworkClient.active && __instance.ConfigFilePath.EndsWith("OrbColors.cfg"))
             {
-                Plugin.Logger.LogMessage("Sending packet due to config being saved.");
+                //Plugin.Logger.LogMessage("Sending packet due to config being saved.");
                 Plugin.SendOrbColorPacket();
             }
 

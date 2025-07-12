@@ -15,13 +15,9 @@ namespace OrbColors
             {
                 Color color = new(Plugin._myOrbColor["Red"].Value, Plugin._myOrbColor["Green"].Value, Plugin._myOrbColor["Blue"].Value, Plugin._myOrbColor["Alpha"].Value);
 
-                if (Plugin._playerOrbColors.ContainsKey(__instance._player._steamID))
+                if (!Plugin._playerOrbColors.TryAdd(__instance._player._steamID, (Plugin._customOrbColorEnabled.Value, color)))
                 {
                     Plugin._playerOrbColors[__instance._player._steamID] = (Plugin._customOrbColorEnabled.Value, color);
-                }
-                else
-                {
-                    Plugin._playerOrbColors.Add(__instance._player._steamID, (Plugin._customOrbColorEnabled.Value, color));
                 }
             }
 
