@@ -8,6 +8,7 @@ using CodeTalker.Packets;
 using HarmonyLib;
 using Mirror;
 using Nessie.ATLYSS.EasySettings;
+using Nessie.ATLYSS.EasySettings.UIElements;
 using UnityEngine;
 
 namespace OrbColors
@@ -28,31 +29,34 @@ namespace OrbColors
         internal static ConfigEntry<bool> _customOrbColorEnabled;
         internal static Dictionary<string, ConfigEntry<float>> _myOrbColor = [];
         internal static Dictionary<string, (bool, Color)> _playerOrbColors = [];
+        internal static List<BaseAtlyssElement> _settingsElements = [];
 
         internal static new ManualLogSource Logger = null!;
+        internal static new ConfigFile Config = null!;
 
         private void Awake()
         {
             Logger = base.Logger;
+            Config = base.Config;
 
             Logger.LogInfo($"Plugin {LCMPluginInfo.PLUGIN_NAME} version {LCMPluginInfo.PLUGIN_VERSION} is loaded!");
 
             new Harmony(LCMPluginInfo.PLUGIN_GUID).PatchAll(Assembly.GetExecutingAssembly());
 
-            InitConfig();
+            base.Config.SaveOnConfigSet = false;
 
-            Config.SaveOnConfigSet = false;
-
-            Settings.OnInitialized.AddListener(AddSettings);
-            Settings.OnApplySettings.AddListener(() => { Config.Save(); });
+            //Settings.OnInitialized.AddListener(AddSettings);
+            Settings.OnApplySettings.AddListener(() => { base.Config.Save(); });
 
             CodeTalkerNetwork.RegisterListener<OrbColorPacket>(ReceiveOrbColorPacket);
             CodeTalkerNetwork.RegisterListener<PlayerJoinPacket>(ReceivePlayerJoinPacket);
         }
 
-        private void InitConfig()
+        internal static void InitConfig()
         {
-            ConfigDefinition EnabledDef = new("Example Category", "OrbColorsEnabled");
+            string headerName = ProfileDataManager._current._characterFile._nickName;
+
+            ConfigDefinition EnabledDef = new(headerName, "OrbColorsEnabled");
             ConfigDescription EnabledDesc = new("Use Custom Orb Color?");
             _customOrbColorEnabled = Config.Bind(EnabledDef, false, EnabledDesc);
 
@@ -67,24 +71,24 @@ namespace OrbColors
             foreach ((string Color, float Value) in Values)
             {
                 // ConfigEntry's can be fully initialized in Config.Bind, but I find it more concise to separate out the definitions and descriptions.
-                ConfigDefinition ConfigDef = new("Example Category", $"Shield{Color}");
+                ConfigDefinition ConfigDef = new(headerName, $"Shield{Color}");
                 ConfigDescription ConfigDesc = new(Color, new AcceptableValueRange<float>(0, 1));
 
                 _myOrbColor.Add(Color, Config.Bind(ConfigDef, Value, ConfigDesc));
             }
         }
 
-        private void AddSettings()
+        internal static void AddSettings()
         {
             SettingsTab tab = Settings.ModTab;
 
-            tab.AddHeader("Custom Shield Orb Color");
+            _settingsElements.Add(tab.AddHeader($"{ProfileDataManager._current._characterFile._nickName}'s Shield Orb Color"));
 
-            tab.AddToggle(_customOrbColorEnabled.Description.Description, _customOrbColorEnabled);
+            _settingsElements.Add(tab.AddToggle(_customOrbColorEnabled.Description.Description, _customOrbColorEnabled));
 
             foreach ((string Color, ConfigEntry<float> Value) in _myOrbColor)
             {
-                tab.AddAdvancedSlider(Color, Value);
+                _settingsElements.Add(tab.AddAdvancedSlider(Color, Value));
             }
         }
 

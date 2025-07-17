@@ -2,6 +2,8 @@
 using CodeTalker.Networking;
 using HarmonyLib;
 using Mirror;
+using Nessie.ATLYSS.EasySettings;
+using Nessie.ATLYSS.EasySettings.UIElements;
 
 namespace OrbColors
 {
@@ -12,6 +14,8 @@ namespace OrbColors
         {
             if(NetworkClient.active)
             {
+                Plugin.InitConfig();
+                Plugin.AddSettings();
                 CodeTalkerNetwork.SendNetworkPacket(new PlayerJoinPacket());
             }
         }
@@ -30,6 +34,27 @@ namespace OrbColors
             }
 
             return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(CharacterSelectManager), "Select_CharacterFile")]
+    internal class CharacterSelectManagerPatch
+    {
+        public static void Prefix()
+        {
+            // Clear my orb color between sessions
+            Plugin._myOrbColor = [];
+
+            // Clear the cache of steamIDs and orb colors between sessions.
+            Plugin._playerOrbColors = [];
+
+            // Clear the OrbColors settings off the mod tab. They will be applied again later once the new character is chosen.
+            foreach(BaseAtlyssElement element in Plugin._settingsElements)
+            {
+                Settings.ModTab.ContentElements.Remove(element);
+                element.Root.gameObject.SetActive(false);
+            }
+            Plugin._settingsElements.Clear();
         }
     }
 }

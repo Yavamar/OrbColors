@@ -11,7 +11,7 @@ namespace OrbColors
         public static bool Prefix(PlayerVisual __instance)
         {
             // If you're playing offline, CodeTalker doesn't work. So we have to set the orb color here.
-            if(AtlyssNetworkManager._current._soloMode)
+            if (AtlyssNetworkManager._current._soloMode)
             {
                 Color color = new(Plugin._myOrbColor["Red"].Value, Plugin._myOrbColor["Green"].Value, Plugin._myOrbColor["Blue"].Value, Plugin._myOrbColor["Alpha"].Value);
 
