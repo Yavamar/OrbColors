@@ -136,10 +136,15 @@ namespace OrbColors
 
         internal static void ReceivePlayerJoinPacket(PacketHeader header, PacketBase packet)
         {
-            //Logger.LogInfo("Player with OrbColors joined.");
             if (packet is PlayerJoinPacket && _orbColorEnabled.Value)
             {
-                //Logger.LogInfo("My custom orb color is enabled, so I should send it to them.");
+                // If you rejoin a server, everyone should remove your old entry in case your new one has _orbColorEnabled = false.
+                string key = header.SenderID.ToString();
+                if (_playerOrbColors.ContainsKey(key))
+                {
+                    _playerOrbColors.Remove(key);
+                }
+
                 SendOrbColorPacket();
             }
         }
