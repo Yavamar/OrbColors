@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace OrbColors;
 
-public class OrbColorPacket(bool enabled, float red, float green, float blue, float alpha) : PacketBase
+public class OrbColorPacket(bool enabled, float red, float green, float blue, float size) : PacketBase
 {
     public override string PacketSourceGUID => LCMPluginInfo.PLUGIN_GUID;
 
@@ -16,7 +16,7 @@ public class OrbColorPacket(bool enabled, float red, float green, float blue, fl
     [JsonProperty]
     public float Blue { get; set; } = blue;
     [JsonProperty]
-    public float Alpha { get; set; } = alpha;
+    public float Size { get; set; } = size;
 }
 
 public class PlayerJoinPacket() : PacketBase

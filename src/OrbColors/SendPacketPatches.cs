@@ -17,6 +17,8 @@ namespace OrbColors
                 Plugin.InitConfig();
                 Plugin.AddSettings();
                 CodeTalkerNetwork.SendNetworkPacket(new PlayerJoinPacket());
+
+                Plugin.SetOfflineOrbColor();
             }
         }
     }
@@ -31,6 +33,8 @@ namespace OrbColors
             {
                 //Plugin.Logger.LogMessage("Sending packet due to config being saved.");
                 Plugin.SendOrbColorPacket();
+
+                Plugin.SetOfflineOrbColor();
             }
 
             return true;
@@ -43,7 +47,7 @@ namespace OrbColors
         public static void Prefix()
         {
             // Clear my orb color between sessions
-            Plugin._myOrbColor = [];
+            Plugin._color = [];
 
             // Clear the cache of steamIDs and orb colors between sessions.
             Plugin._playerOrbColors = [];

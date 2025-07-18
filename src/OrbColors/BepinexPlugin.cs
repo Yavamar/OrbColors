@@ -26,9 +26,11 @@ namespace OrbColors
     public class Plugin : BaseUnityPlugin
     {
         // We store the ConfigEntry's such that we can retrieve their values as they will be updated when the settings are.
-        internal static ConfigEntry<bool> _customOrbColorEnabled;
-        internal static Dictionary<string, ConfigEntry<float>> _myOrbColor = [];
-        internal static Dictionary<string, (bool, Color)> _playerOrbColors = [];
+        internal static ConfigEntry<bool> _orbColorEnabled;
+        internal static Dictionary<string, ConfigEntry<float>> _color = [];
+        internal static ConfigEntry<float> _size;
+
+        internal static Dictionary<string, (bool _orbColorsEnabled, Color _color, float _size)> _playerOrbColors = [];
         internal static List<BaseAtlyssElement> _settingsElements = [];
 
         internal static new ManualLogSource Logger = null!;
@@ -45,7 +47,6 @@ namespace OrbColors
 
             base.Config.SaveOnConfigSet = false;
 
-            //Settings.OnInitialized.AddListener(AddSettings);
             Settings.OnApplySettings.AddListener(() => { base.Config.Save(); });
 
             CodeTalkerNetwork.RegisterListener<OrbColorPacket>(ReceiveOrbColorPacket);
@@ -54,28 +55,31 @@ namespace OrbColors
 
         internal static void InitConfig()
         {
-            string headerName = ProfileDataManager._current._characterFile._nickName;
+            string headerName = $"File {ProfileDataManager._current._selectedFileIndex+1}: {ProfileDataManager._current._characterFile._nickName}";
 
-            ConfigDefinition EnabledDef = new(headerName, "OrbColorsEnabled");
-            ConfigDescription EnabledDesc = new("Use Custom Orb Color?");
-            _customOrbColorEnabled = Config.Bind(EnabledDef, false, EnabledDesc);
+            ConfigDefinition enabledDef = new(headerName, "OrbColorsEnabled");
+            ConfigDescription enabledDesc = new("Use Custom Orb Color?");
+            _orbColorEnabled = Config.Bind(enabledDef, false, enabledDesc);
 
-            Color BlockEmissionColor = new();
+            Dictionary<string, float> values = [];
+            values.Add("Red", 0.5f);
+            values.Add("Green", 0.5f);
+            values.Add("Blue", 0.5f);
+            //Values.Add("Alpha", 6.5f);
 
-            Dictionary<string, float> Values = [];
-            Values.Add("Red", BlockEmissionColor.r);
-            Values.Add("Green", BlockEmissionColor.g);
-            Values.Add("Blue", BlockEmissionColor.b);
-            Values.Add("Alpha", BlockEmissionColor.a);
-
-            foreach ((string Color, float Value) in Values)
+            foreach ((string color, float value) in values)
             {
                 // ConfigEntry's can be fully initialized in Config.Bind, but I find it more concise to separate out the definitions and descriptions.
-                ConfigDefinition ConfigDef = new(headerName, $"Shield{Color}");
-                ConfigDescription ConfigDesc = new(Color, new AcceptableValueRange<float>(0, 1));
+                ConfigDefinition colorDef = new(headerName, $"Shield{color}");
+                ConfigDescription colorDesc = new(color, new AcceptableValueRange<float>(0, 1));
 
-                _myOrbColor.Add(Color, Config.Bind(ConfigDef, Value, ConfigDesc));
+                _color.Add(color, Config.Bind(colorDef, value, colorDesc));
             }
+
+            ConfigDefinition sizeDef = new(headerName, $"ShieldSize");
+            ConfigDescription sizeDesc = new("Size", new AcceptableValueRange<float>(0, 100));
+
+            _size = Config.Bind(sizeDef, 6.5f, sizeDesc);
         }
 
         internal static void AddSettings()
@@ -84,24 +88,26 @@ namespace OrbColors
 
             _settingsElements.Add(tab.AddHeader($"{ProfileDataManager._current._characterFile._nickName}'s Shield Orb Color"));
 
-            _settingsElements.Add(tab.AddToggle(_customOrbColorEnabled.Description.Description, _customOrbColorEnabled));
+            _settingsElements.Add(tab.AddToggle(_orbColorEnabled.Description.Description, _orbColorEnabled));
 
-            foreach ((string Color, ConfigEntry<float> Value) in _myOrbColor)
+            foreach ((string color, ConfigEntry<float> value) in _color)
             {
-                _settingsElements.Add(tab.AddAdvancedSlider(Color, Value));
+                _settingsElements.Add(tab.AddAdvancedSlider(color, value));
             }
+
+            _settingsElements.Add(tab.AddAdvancedSlider(_size.Description.Description, _size));
         }
 
         internal static void SendOrbColorPacket()
         {
-            if (NetworkClient.active && _myOrbColor.Count == 4)
+            if (NetworkClient.active)
             {
                 OrbColorPacket packet = new(
-                    _customOrbColorEnabled.Value,
-                    _myOrbColor["Red"].Value,
-                    _myOrbColor["Green"].Value,
-                    _myOrbColor["Blue"].Value,
-                    _myOrbColor["Alpha"].Value);
+                    _orbColorEnabled.Value,
+                    _color["Red"].Value,
+                    _color["Green"].Value,
+                    _color["Blue"].Value,
+                    _size.Value);
 
                 CodeTalkerNetwork.SendNetworkPacket(packet);
             }
@@ -111,9 +117,9 @@ namespace OrbColors
         {
             if (packet is OrbColorPacket orbColor)
             {
-                Logger.LogInfo($"Packet Recieved | Plugin: {orbColor.PacketSourceGUID} | Steam ID: {header.SenderID} | PayLoad: {orbColor.Enabled}, {orbColor.Red}, {orbColor.Green}, {orbColor.Blue}, {orbColor.Alpha}");
+                Logger.LogInfo($"Packet Recieved | Plugin: {orbColor.PacketSourceGUID} | Steam ID: {header.SenderID} | PayLoad: {orbColor.Enabled}, {orbColor.Red}, {orbColor.Green}, {orbColor.Blue}, {orbColor.Size}");
 
-                Color color = new(orbColor.Red, orbColor.Green, orbColor.Blue, orbColor.Alpha);
+                Color color = new(orbColor.Red, orbColor.Green, orbColor.Blue);
                 string key = header.SenderID.ToString();
 
                 if (header.SenderIsLobbyOwner)
@@ -121,9 +127,9 @@ namespace OrbColors
                     key = "localhost"; // Because the Player object sets the _steamID to "localhost" for the host, for some reason.
                 }
                 
-                if(!_playerOrbColors.TryAdd(key, (orbColor.Enabled, color)))
+                if(!_playerOrbColors.TryAdd(key, (orbColor.Enabled, color, orbColor.Size)))
                 {
-                    _playerOrbColors[key] = (orbColor.Enabled, color);
+                    _playerOrbColors[key] = (orbColor.Enabled, color, orbColor.Size);
                 }
             }
         }
@@ -131,10 +137,24 @@ namespace OrbColors
         internal static void ReceivePlayerJoinPacket(PacketHeader header, PacketBase packet)
         {
             //Logger.LogInfo("Player with OrbColors joined.");
-            if (packet is PlayerJoinPacket && _customOrbColorEnabled.Value)
+            if (packet is PlayerJoinPacket && _orbColorEnabled.Value)
             {
                 //Logger.LogInfo("My custom orb color is enabled, so I should send it to them.");
                 SendOrbColorPacket();
+            }
+        }
+
+        internal static void SetOfflineOrbColor()
+        {
+            // If you're playing offline, CodeTalker doesn't work. So we have to set the orb color here.
+            if (AtlyssNetworkManager._current._soloMode)
+            {
+                Color color = new(_color["Red"].Value, _color["Green"].Value, _color["Blue"].Value);
+
+                if (!_playerOrbColors.TryAdd("localhost", (_orbColorEnabled.Value, color, _size.Value)))
+                {
+                    _playerOrbColors["localhost"] = (_orbColorEnabled.Value, color, _size.Value);
+                }
             }
         }
     }
