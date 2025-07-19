@@ -55,7 +55,7 @@ namespace OrbColors
 
         internal static void InitConfig()
         {
-            string headerName = $"File {ProfileDataManager._current._selectedFileIndex+1}: {ProfileDataManager._current._characterFile._nickName}";
+            string headerName = $"File {ProfileDataManager._current._selectedFileIndex+1}";
 
             ConfigDefinition enabledDef = new(headerName, "OrbColorsEnabled");
             ConfigDescription enabledDesc = new("Use Custom Orb Color?");
