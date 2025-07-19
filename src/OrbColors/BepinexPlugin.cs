@@ -119,17 +119,25 @@ namespace OrbColors
             {
                 Logger.LogInfo($"Packet Recieved | Plugin: {orbColor.PacketSourceGUID} | Steam ID: {header.SenderID} | PayLoad: {orbColor.Enabled}, {orbColor.Red}, {orbColor.Green}, {orbColor.Blue}, {orbColor.Size}");
 
-                Color color = new(orbColor.Red, orbColor.Green, orbColor.Blue);
                 string key = header.SenderID.ToString();
 
-                if (header.SenderIsLobbyOwner)
+                if (orbColor.Enabled)
                 {
-                    key = "localhost"; // Because the Player object sets the _steamID to "localhost" for the host, for some reason.
+                    Color color = new(orbColor.Red, orbColor.Green, orbColor.Blue);
+
+                    if (header.SenderIsLobbyOwner)
+                    {
+                        key = "localhost"; // Because the Player object sets the _steamID to "localhost" for the host, for some reason.
+                    }
+
+                    if (!_playerOrbColors.TryAdd(key, (orbColor.Enabled, color, orbColor.Size)))
+                    {
+                        _playerOrbColors[key] = (orbColor.Enabled, color, orbColor.Size);
+                    }
                 }
-                
-                if(!_playerOrbColors.TryAdd(key, (orbColor.Enabled, color, orbColor.Size)))
+                else if (_playerOrbColors.ContainsKey(key))
                 {
-                    _playerOrbColors[key] = (orbColor.Enabled, color, orbColor.Size);
+                    _playerOrbColors.Remove(key);
                 }
             }
         }
