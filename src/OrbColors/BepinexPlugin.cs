@@ -10,6 +10,7 @@ using Mirror;
 using Nessie.ATLYSS.EasySettings;
 using Nessie.ATLYSS.EasySettings.UIElements;
 using UnityEngine;
+using Steamworks;
 
 namespace OrbColors
 {
@@ -125,10 +126,10 @@ namespace OrbColors
                 {
                     Color color = new(orbColor.Red, orbColor.Green, orbColor.Blue);
 
-                    if (header.SenderIsLobbyOwner)
-                    {
-                        key = "localhost"; // Because the Player object sets the _steamID to "localhost" for the host, for some reason.
-                    }
+                    //if (header.SenderIsLobbyOwner)
+                    //{
+                    //    key = "localhost"; // Because the Player object sets the _steamID to "localhost" for the host, for some reason.
+                    //}
 
                     if (!_playerOrbColors.TryAdd(key, (orbColor.Enabled, color, orbColor.Size)))
                     {
@@ -164,9 +165,9 @@ namespace OrbColors
             {
                 Color color = new(_color["Red"].Value, _color["Green"].Value, _color["Blue"].Value);
 
-                if (!_playerOrbColors.TryAdd("localhost", (_orbColorEnabled.Value, color, _size.Value)))
+                if (!_playerOrbColors.TryAdd(SteamUser.GetSteamID().ToString(), (_orbColorEnabled.Value, color, _size.Value)))
                 {
-                    _playerOrbColors["localhost"] = (_orbColorEnabled.Value, color, _size.Value);
+                    _playerOrbColors[SteamUser.GetSteamID().ToString()] = (_orbColorEnabled.Value, color, _size.Value);
                 }
             }
         }
