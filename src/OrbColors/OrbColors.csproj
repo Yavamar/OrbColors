@@ -4,7 +4,7 @@
 
     <AssemblyName>OrbColors</AssemblyName>
     <Product>$(AssemblyName)</Product>
-    <Version>1.2.2</Version>
+    <Version>1.2.4</Version>
 
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
@@ -25,7 +25,7 @@
 	<Reference Include="$(DependsDir)/com.rlabrecque.steamworks.net.dll" />
 
     <Reference Include="C:\Users\Yavamar\AppData\Roaming\r2modmanPlus-local\ATLYSS\profiles\Default\BepInEx\plugins\Nessie-EasySettings\EasySettings.dll" />
-    <Reference Include="C:\Users\Yavamar\AppData\Roaming\r2modmanPlus-local\ATLYSS\profiles\Default\BepInEx\plugins\Robyn-CodeTalker\CodeTalker.dll" />
+	<Reference Include="C:\Users\Yavamar\AppData\Roaming\r2modmanPlus-local\ATLYSS\profiles\Default\BepInEx\plugins\Soggy_Pancake-CodeYapper\CodeTalker.dll" />
   </ItemGroup>
 
   <ItemGroup>

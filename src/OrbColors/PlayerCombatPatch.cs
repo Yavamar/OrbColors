@@ -21,12 +21,6 @@ namespace OrbColors
 
             if (_newBool)
             {
-                int num = 0;
-                if ((bool)__instance._equippedWeapon)
-                {
-                    num = __instance._equippedWeapon._weaponHoldClipIndex;
-                }
-
                 __instance._pSound._aSrcGeneral.PlayOneShot(__instance._pSound._generalSounds[12], 0.35f);
                 if ((bool)__instance._equippedShield && __instance._currentScriptableWeaponType._weaponHandedness == WeaponHandedness.One_Handed)
                 {
@@ -34,7 +28,7 @@ namespace OrbColors
                 }
                 else
                 {
-                    __instance._pVisual.Local_CrossFadeAnim(__instance._currentScriptableWeaponType._weaponAnimSlots[num]._weaponBlockAnimation ?? "", 0f, 3);
+                    __instance._pVisual.Local_CrossFadeAnim(__instance._currentScriptableWeaponType._weaponData._weaponBlockAnimation ?? "", 0f, 3);
                 }
 
                 __instance._pVisual._blockOrbEffect.transform.localScale = Vector3.one * size*2;
